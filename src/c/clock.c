@@ -5,13 +5,16 @@
 
 static Layer *window_layer = 0;
 // analog clock
-static BitmapLayer *analog_clock_bitmap_layer = 0;
-static Layer *analog_clock_layer = 0;
-static GBitmap *analog_clock_bitmap = 0;
+static BitmapLayer *hour_layer = 0;
+static BitmapLayer *min_layer = 0;
+static Layer *sec_layer = 0; // with data
+static GBitmap *bitmap_webos_clockface = 0;
+static GBitmap *bitmap_webos_hour = 0;
 // misc.
-static AppTimer *secs_display_apptimer = 0; 
+#ifndef SECONDS_ALWAYS_ON
+static AppTimer *secs_display_apptimer = 0;
+#endif
 extern tm tm_time;
-extern tm tm_gmt;
 
 static void start_seconds_display( AccelAxisType axis, int32_t direction );
 
@@ -22,34 +25,28 @@ bool is_X_in_range( int a, int b, int x ) { return ( ( b > a ) ? ( ( x >= a ) &&
 void draw_clock( void ) {
   time_t now = time( NULL );
   tm_time = *localtime( &now ); // copy to global
-  tm_gmt = *gmtime( &now ); // copy to global
+  #ifndef SECONDS_ALWAYS_ON
   if ( persist_read_int( MESSAGE_KEY_ANALOG_SECONDS_DISPLAY_TIMEOUT_SECS ) ) accel_tap_service_subscribe( start_seconds_display );
-  layer_mark_dirty( analog_clock_layer );
+  #endif
+  layer_mark_dirty( window_layer );
 }
 
 static void handle_clock_tick( struct tm *tick_time, TimeUnits units_changed ) {
   tm_time = *tick_time; // copy to global
-  time_t now = time( NULL );
-  tm_gmt = *gmtime( &now ); // copy to global
   
   // if (DEBUG) APP_LOG( APP_LOG_LEVEL_INFO, "clock.c: handle_clock_tick(): %d:%d:%d", tm_time.tm_hour, tm_time.tm_min, tm_time.tm_sec );
 
-  layer_mark_dirty( analog_clock_layer );
+  layer_mark_dirty( window_layer );
   
   if ( ( units_changed & MINUTE_UNIT ) == MINUTE_UNIT ) do_chime( &tm_time );
 }
 
-static void analog_clock_layer_update_proc( Layer *layer, GContext *ctx ) {
-  // uses global tm_time
-
-  
-}
-  
+#ifndef SECONDS_ALWAYS_ON
 static void stop_seconds_display( void* data ) { // after timer elapses
   if ( secs_display_apptimer ) app_timer_cancel( secs_display_apptimer ); // just for fun.
   secs_display_apptimer = 0; // docs don't say if this is set to zero when timer expires. 
 
-  ( (ANALOG_LAYER_DATA *) layer_get_data( analog_clock_layer ) )->show_seconds = false;
+  ( (ANALOG_LAYER_DATA *) layer_get_data( hour_layer ) )->show_seconds = false;
 
   tick_timer_service_subscribe( MINUTE_UNIT, handle_clock_tick );
 }
@@ -63,7 +60,7 @@ static void start_seconds_display( AccelAxisType axis, int32_t direction ) {
 
   tick_timer_service_subscribe( SECOND_UNIT, handle_clock_tick );
 
-  ( (ANALOG_LAYER_DATA *) layer_get_data( analog_clock_layer ) )->show_seconds = true;
+  ( (ANALOG_LAYER_DATA *) layer_get_data( hour_layer ) )->show_seconds = true;
   //
   if ( secs_display_apptimer ) {
     app_timer_reschedule( secs_display_apptimer, (uint32_t) persist_read_int( MESSAGE_KEY_ANALOG_SECONDS_DISPLAY_TIMEOUT_SECS ) * 1000 );
@@ -72,30 +69,69 @@ static void start_seconds_display( AccelAxisType axis, int32_t direction ) {
                                                stop_seconds_display, 0 );
   }
 }
+#endif
+
+static void hour_layer_update_proc( Layer *layer, GContext *ctx ) {
+  GRect layer_bounds = layer_get_bounds( layer );
+  graphics_draw_bitmap_in_rect( ctx, bitmap_webos_clockface, layer_bounds );
+  graphics_context_set_compositing_mode( ctx, GCompOpSet );
+  int32_t sec_angle = TRIG_MAX_ANGLE * tm_time.tm_sec / 60;
+  #if PBL_DISPLAY_WIDTH == 200
+  GPoint bitmap_center = GPoint( 84, 84 );
+  #else
+  GPoint bitmap_center = GPoint( 60, 60 );
+  #endif
+  graphics_draw_rotated_bitmap( ctx, bitmap_webos_hour, bitmap_center, sec_angle, GPoint( PBL_DISPLAY_WIDTH / 2, PBL_DISPLAY_WIDTH / 2 ) );
+}
+
+static void min_layer_update_proc( Layer *layer, GContext *ctx ) {
+  GRect layer_bounds = layer_get_bounds( layer );
+  GPoint center_pt = grect_center_point( &layer_bounds );
+  uint32_t min_angle = TRIG_MAX_ANGLE * tm_time.tm_min / 60;
+  GPoint min_hand = (GPoint) {
+    .x = ( sin_lookup( min_angle ) * MIN_HAND_LENGTH / TRIG_MAX_RATIO ) + center_pt.x,
+    .y = ( -cos_lookup( min_angle ) * MIN_HAND_LENGTH / TRIG_MAX_RATIO ) + center_pt.y
+  };
+  graphics_context_set_stroke_color( ctx, GColorDarkGray );
+  graphics_context_set_stroke_width( ctx, MIN_HAND_WIDTH );
+  graphics_draw_line( ctx, GPoint( PBL_DISPLAY_WIDTH / 2, PBL_DISPLAY_WIDTH / 2 ), min_hand );
+}
+  
+static void sec_layer_update_proc( Layer *layer, GContext *ctx ) {
+  GRect layer_bounds = layer_get_bounds( layer );
+  GPoint center_pt = grect_center_point( &layer_bounds );
+  int32_t sec_angle = TRIG_MAX_ANGLE * tm_time.tm_sec / 60;
+  GPoint sec_dot = (GPoint) {
+    .x = ( sin_lookup( sec_angle ) * SEC_DOT_DIST / TRIG_MAX_RATIO ) + center_pt.x,
+    .y = ( -cos_lookup( sec_angle ) * SEC_DOT_DIST / TRIG_MAX_RATIO ) + center_pt.y
+  };  
+  graphics_context_set_fill_color( ctx, GColorOrange );
+  graphics_fill_circle( ctx, sec_dot, SEC_DOT_RADIUS );
+}
 
 void clock_init( Window *window ) {
   window_layer = window_get_root_layer( window );
-  GRect window_bounds = layer_get_bounds( window_layer );
-  GRect clock_layer_bounds = GRect( window_bounds.origin.x + CLOCK_POS_X, window_bounds.origin.y + CLOCK_POS_Y, 
-                                   window_bounds.size.w - CLOCK_POS_X, window_bounds.size.h - CLOCK_POS_Y );
-  // background bitmap
-  analog_clock_bitmap = gbitmap_create_with_resource( RESOURCE_ID_ANALOG_EMERY_FULL_SLIM );
-  analog_clock_bitmap_layer = bitmap_layer_create( clock_layer_bounds );
-  bitmap_layer_set_bitmap( analog_clock_bitmap_layer, analog_clock_bitmap );
-  layer_add_child( window_layer, bitmap_layer_get_layer( analog_clock_bitmap_layer ) );
-  layer_set_hidden( bitmap_layer_get_layer( analog_clock_bitmap_layer ), false );
-  // clock layer
-  analog_clock_layer = layer_create_with_data( layer_get_bounds( bitmap_layer_get_layer( analog_clock_bitmap_layer ) ),
-                                              sizeof( ANALOG_LAYER_DATA ) );  
-  #ifdef SECONDS_ALWAYS_ON
-  ( (ANALOG_LAYER_DATA *) layer_get_data( analog_clock_layer ) )->show_seconds = true;
-  #else
-  ( (ANALOG_LAYER_DATA *) layer_get_data( analog_clock_layer ) )->show_seconds = false;
-  #endif
-  layer_add_child( bitmap_layer_get_layer( analog_clock_bitmap_layer ), analog_clock_layer );
-  layer_set_update_proc( analog_clock_layer, analog_clock_layer_update_proc ); 
-  layer_set_hidden( analog_clock_layer, false );
+  // GRect window_bounds = layer_get_bounds( window_layer );
   
+  bitmap_webos_clockface = gbitmap_create_with_resource( RESOURCE_ID_IMAGE_WEBOS_CLOCKFACE );
+  bitmap_webos_hour = gbitmap_create_with_resource( RESOURCE_ID_IMAGE_WEBOS_CLOCKFACE_HOUR );
+  
+  GRect clock_rect = GRect( 0, 0, PBL_DISPLAY_WIDTH, PBL_DISPLAY_WIDTH );
+  hour_layer = bitmap_layer_create( clock_rect );
+  bitmap_layer_set_bitmap( hour_layer, bitmap_webos_clockface );
+  layer_add_child( window_layer, bitmap_layer_get_layer( hour_layer ) );
+  layer_set_update_proc( bitmap_layer_get_layer( hour_layer ), hour_layer_update_proc );
+  
+  min_layer = bitmap_layer_create( clock_rect );
+  layer_add_child( bitmap_layer_get_layer( hour_layer ), bitmap_layer_get_layer( min_layer ) );
+  layer_set_update_proc( bitmap_layer_get_layer( min_layer ), min_layer_update_proc );
+  
+  sec_layer = layer_create_with_data( clock_rect, sizeof( ANALOG_LAYER_DATA ) );
+  ( (ANALOG_LAYER_DATA *) layer_get_data( sec_layer ) )->show_seconds = false;
+  layer_add_child( bitmap_layer_get_layer( min_layer ), sec_layer );
+  layer_set_update_proc( sec_layer, sec_layer_update_proc );
+  
+ 
   // subscriptions
   #ifdef SECONDS_ALWAYS_ON
   tick_timer_service_subscribe( SECOND_UNIT, handle_clock_tick );
@@ -108,10 +144,14 @@ void clock_init( Window *window ) {
 }
 
 void clock_deinit( void ) {
+  #ifndef SECONDS_ALWAYS_ON
   if ( secs_display_apptimer ) app_timer_cancel( secs_display_apptimer );
   accel_tap_service_unsubscribe(); // are we over-unsubscribing?
+  #endif
   tick_timer_service_unsubscribe();
-  layer_destroy( analog_clock_layer );
-  bitmap_layer_destroy( analog_clock_bitmap_layer );
-  gbitmap_destroy( analog_clock_bitmap );
+  layer_destroy( sec_layer );
+  bitmap_layer_destroy( min_layer );
+  bitmap_layer_destroy( hour_layer );
+  gbitmap_destroy( bitmap_webos_hour );
+  gbitmap_destroy( bitmap_webos_clockface );
 }
