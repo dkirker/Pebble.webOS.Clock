@@ -1,0 +1,40 @@
+{
+    "author": "The Resetter",
+    "dependencies": {
+        "pebble-clay": "^1.0.2"
+    },
+    "keywords": [],
+    "name": "anery",
+    "pebble": {
+        "capabilities": [
+            "location",
+            "configurable"
+        ],
+        "displayName": "Anery",
+        "enableMultiJS": true,
+        "messageKeys": [
+            "ANALOG_SECONDS_DISPLAY_TIMEOUT_SECS",
+            "CHIME_INTERVAL",
+            "CHIME_START_TIME",
+            "CHIME_END_TIME",
+            "CHIME_ON_DAYS[7]",
+            "CHIME_OFFSET"
+        ],
+        "projectType": "native",
+        "resources": {
+            "media": []
+        },
+        "sdkVersion": "3",
+        "targetPlatforms": [
+            "aplite",
+            "basalt",
+            "diorite",
+            "emery"
+        ],
+        "uuid": "feec8b3e-0491-4030-b9f9-5083cff5ec75",
+        "watchapp": {
+            "watchface": true
+        }
+    },
+    "version": "1.11.0"
+}
