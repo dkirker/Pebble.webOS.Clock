@@ -3,7 +3,7 @@
 #include "config.h"
 #include "clock.h"
 
-#define NUM_INT_MESSAGE_KEYS 5
+#define NUM_INT_MESSAGE_KEYS 6
 #define NUM_BOOL_CHKBOX_MESSAGE_KEYS 1
 
 typedef struct {
@@ -23,6 +23,7 @@ void handle_config_message( DictionaryIterator *iterator ) {
   uint32_t INT_MESSAGE_KEYS[ NUM_INT_MESSAGE_KEYS ] = {
     // Clock
     MESSAGE_KEY_ANALOG_SECONDS_DISPLAY_TIMEOUT_SECS,
+    MESSAGE_KEY_SHOW_BATTERY_GAUGE,
     // Chime
     MESSAGE_KEY_CHIME_INTERVAL,
     MESSAGE_KEY_CHIME_START_TIME,

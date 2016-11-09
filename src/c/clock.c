@@ -15,7 +15,7 @@ static GBitmap *bitmap_webos_hour = 0;
 #ifndef SECONDS_ALWAYS_ON
 static AppTimer *secs_display_apptimer = 0;
 #endif
-static TimeUnits time_units_change;
+
 extern tm tm_time;
 
 #ifndef SECONDS_ALWAYS_ON
@@ -37,7 +37,6 @@ void draw_clock( void ) {
 
 static void handle_clock_tick( struct tm *tick_time, TimeUnits units_changed ) {
   tm_time = *tick_time; // copy to global
-  time_units_change = units_changed;
   
   // if (DEBUG) APP_LOG( APP_LOG_LEVEL_INFO, "clock.c: handle_clock_tick(): %d:%d:%d", tm_time.tm_hour, tm_time.tm_min, tm_time.tm_sec );
 

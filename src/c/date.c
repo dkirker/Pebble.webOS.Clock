@@ -19,8 +19,7 @@ static void date_layer_update_proc( Layer *layer, GContext *ctx ) {
  
 static void date_text_layer_update_proc( Layer *layer, GContext *ctx ) {
   char date_str[32];
-  GRect date_window_bounds = layer_get_bounds( layer );
-  date_window_bounds = grect_inset( date_window_bounds, GEdgeInsets( DATE_STR_VERT_CORRECTION ) );
+  GRect date_window_bounds = grect_inset( layer_get_bounds( layer ), GEdgeInsets( DATE_STR_VERT_CORRECTION ) );
   graphics_context_set_text_color( ctx, GColorLightGray );
   strftime( date_str, 32, "%a, %e-%b-%Y", &tm_time );
   graphics_draw_text( ctx, date_str, batt_font, date_window_bounds,
@@ -36,13 +35,9 @@ void date_init( Layer* parent_layer )
   #endif
   
   GRect bounds = layer_get_bounds( parent_layer );
-  #if PBL_DISPLAY_WIDTH == 200
-  bounds.origin.y += 200;
-  bounds.size.h -= 200;
-  #else
-  bounds.origin.y += 144;
-  bounds.size.h -= 144;
-  #endif
+  
+  bounds.origin.y += PBL_DISPLAY_WIDTH;
+  bounds.size.h -= PBL_DISPLAY_WIDTH;
   
   date_layer = layer_create( bounds );
   layer_set_update_proc( date_layer, date_layer_update_proc );
