@@ -56,11 +56,7 @@ static void stop_seconds_display( void* data ) { // after timer elapses
   tick_timer_service_subscribe( MINUTE_UNIT, handle_clock_tick );
 }
 
-static void start_seconds_display( AccelAxisType axis, int32_t direction ) {
-  #ifdef SECONDS_ALWAYS_ON
-  return;
-  #endif
-  
+static void start_seconds_display( AccelAxisType axis, int32_t direction ) {  
   if ( ! persist_read_int( MESSAGE_KEY_ANALOG_SECONDS_DISPLAY_TIMEOUT_SECS ) ) return;
 
   tick_timer_service_subscribe( SECOND_UNIT, handle_clock_tick );
