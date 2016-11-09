@@ -101,9 +101,9 @@ static void sec_layer_update_proc( Layer *layer, GContext *ctx ) {
     .x = ( sin_lookup( sec_angle ) * SEC_DOT_DIST / TRIG_MAX_RATIO ) + center_pt.x,
     .y = ( -cos_lookup( sec_angle ) * SEC_DOT_DIST / TRIG_MAX_RATIO ) + center_pt.y
   };  
-  graphics_context_set_fill_color( ctx, GColorDarkCandyAppleRed );
+  graphics_context_set_fill_color( ctx, GColorOrange );
   graphics_fill_circle( ctx, sec_dot_center, SEC_DOT_RADIUS );
-  graphics_context_set_stroke_color( ctx, GColorOrange );
+  graphics_context_set_stroke_color( ctx, GColorDarkCandyAppleRed );
   graphics_context_set_stroke_width( ctx, 1 );
   graphics_draw_circle( ctx, sec_dot_center, SEC_DOT_RADIUS );
 }

@@ -18,10 +18,10 @@ static void date_layer_update_proc( Layer *layer, GContext *ctx ) {
 }
  
 static void date_text_layer_update_proc( Layer *layer, GContext *ctx ) {
-  char date_str[32];
+  char date_str[] = "AAA, DD-MMM-YYYY";
   GRect date_window_bounds = grect_inset( layer_get_bounds( layer ), GEdgeInsets( DATE_STR_VERT_CORRECTION ) );
   graphics_context_set_text_color( ctx, GColorLightGray );
-  strftime( date_str, 32, "%a, %e-%b-%Y", &tm_time );
+  strftime( date_str, sizeof( date_str ), "%a, %e-%b-%Y", &tm_time );
   graphics_draw_text( ctx, date_str, batt_font, date_window_bounds,
                      GTextOverflowModeTrailingEllipsis, GTextAlignmentCenter, NULL );
 }
