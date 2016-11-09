@@ -24,10 +24,6 @@
 #endif
 ///////
 
-typedef struct {
-  bool show_seconds;
-} ANALOG_LAYER_DATA;
-
 bool is_X_in_range( int a, int b, int x );
 void draw_clock( void );
 void clock_init( Window* window );

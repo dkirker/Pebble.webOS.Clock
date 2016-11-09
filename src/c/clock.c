@@ -8,7 +8,7 @@ static Layer *window_layer = 0;
 // analog clock
 static BitmapLayer *hour_layer = 0;
 static BitmapLayer *min_layer = 0;
-static Layer *sec_layer = 0; // with data
+static BitmapLayer *sec_layer = 0;
 static GBitmap *bitmap_webos_clockface = 0;
 static GBitmap *bitmap_webos_hour = 0;
 // misc.
@@ -50,8 +50,8 @@ static void stop_seconds_display( void* data ) { // after timer elapses
   if ( secs_display_apptimer ) app_timer_cancel( secs_display_apptimer ); // just for fun.
   secs_display_apptimer = 0; // docs don't say if this is set to zero when timer expires. 
 
-  ( (ANALOG_LAYER_DATA *) layer_get_data( sec_layer ) )->show_seconds = false;
-
+  layer_set_hidden( bitmap_layer_get_layer( sec_layer ), true );
+  
   tick_timer_service_subscribe( MINUTE_UNIT, handle_clock_tick );
 }
 
@@ -60,8 +60,8 @@ static void start_seconds_display( AccelAxisType axis, int32_t direction ) {
 
   tick_timer_service_subscribe( SECOND_UNIT, handle_clock_tick );
 
-  ( (ANALOG_LAYER_DATA *) layer_get_data( sec_layer ) )->show_seconds = true;
-  //
+  layer_set_hidden( bitmap_layer_get_layer( sec_layer ), false );
+
   if ( secs_display_apptimer ) {
     app_timer_reschedule( secs_display_apptimer, (uint32_t) persist_read_int( MESSAGE_KEY_ANALOG_SECONDS_DISPLAY_TIMEOUT_SECS ) * 1000 );
   } else {
@@ -94,10 +94,6 @@ static void min_layer_update_proc( Layer *layer, GContext *ctx ) {
 }
   
 static void sec_layer_update_proc( Layer *layer, GContext *ctx ) {
-  #ifndef SECONDS_ALWAYS_ON
-  if ( ! ( (ANALOG_LAYER_DATA *) layer_get_data( sec_layer ) )->show_seconds ) return;
-  #endif
-  
   GRect layer_bounds = layer_get_bounds( layer );
   GPoint center_pt = grect_center_point( &layer_bounds );
   int32_t sec_angle = TRIG_MAX_ANGLE * tm_time.tm_sec / 60;
@@ -129,14 +125,15 @@ void clock_init( Window *window ) {
   layer_add_child( bitmap_layer_get_layer( hour_layer ), bitmap_layer_get_layer( min_layer ) );
   layer_set_update_proc( bitmap_layer_get_layer( min_layer ), min_layer_update_proc );
   
-  sec_layer = layer_create_with_data( clock_rect, sizeof( ANALOG_LAYER_DATA ) );
+  sec_layer = bitmap_layer_create( clock_rect );
+  layer_add_child( bitmap_layer_get_layer( min_layer ), bitmap_layer_get_layer( sec_layer ) );
+  layer_set_update_proc( bitmap_layer_get_layer( sec_layer ), sec_layer_update_proc );
+  
   #ifdef SECONDS_ALWAYS_ON
-  ( (ANALOG_LAYER_DATA *) layer_get_data( sec_layer ) )->show_seconds = true;
+  layer_set_hidden( bitmap_layer_get_layer( sec_layer ), false );
   #else
-  ( (ANALOG_LAYER_DATA *) layer_get_data( sec_layer ) )->show_seconds = false;
+  layer_set_hidden( bitmap_layer_get_layer( sec_layer ), true );
   #endif
-  layer_add_child( bitmap_layer_get_layer( min_layer ), sec_layer );
-  layer_set_update_proc( sec_layer, sec_layer_update_proc );
   
   date_init( window_layer );  
  
@@ -158,7 +155,7 @@ void clock_deinit( void ) {
   #endif
   date_deinit();
   tick_timer_service_unsubscribe();
-  layer_destroy( sec_layer );
+  bitmap_layer_destroy( sec_layer );
   bitmap_layer_destroy( min_layer );
   bitmap_layer_destroy( hour_layer );
   gbitmap_destroy( bitmap_webos_hour );
