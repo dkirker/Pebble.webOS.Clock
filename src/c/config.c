@@ -3,9 +3,6 @@
 #include "config.h"
 #include "clock.h"
 
-#define NUM_INT_MESSAGE_KEYS 6
-#define NUM_BOOL_CHKBOX_MESSAGE_KEYS 1
-
 typedef struct {
   uint32_t keyID;
   int numChkBoxItems;
@@ -20,7 +17,7 @@ void handle_config_message( DictionaryIterator *iterator ) {
   // could be const arrays..., but we don't want to lose automatic key assignment...
   // in all-caps, pretending to be constant values. This should be outside the 
   // function, but since these are variables, tough luck.
-  uint32_t INT_MESSAGE_KEYS[ NUM_INT_MESSAGE_KEYS ] = {
+  uint32_t INT_MESSAGE_KEYS[] = {
     // Clock
     MESSAGE_KEY_ANALOG_SECONDS_DISPLAY_TIMEOUT_SECS,
     MESSAGE_KEY_SHOW_BATTERY_GAUGE,
@@ -33,17 +30,17 @@ void handle_config_message( DictionaryIterator *iterator ) {
 
   Tuple *p_tuple = 0;
 
-  for ( int i = 0 ; i < NUM_INT_MESSAGE_KEYS; i++ ) {
+  for ( size_t i = 0 ; i < sizeof( INT_MESSAGE_KEYS ); i++ ) {
     if ( ( p_tuple = dict_find( iterator, INT_MESSAGE_KEYS[ i ] ) ) ) {
       persist_write_int( INT_MESSAGE_KEYS[ i ], stringToInt( (char*) p_tuple->value->data ) );
     }
   }
 
-  BOOL_CHKBOX_KEY BOOL_CHKBOX_MESSAGE_KEYS[ NUM_BOOL_CHKBOX_MESSAGE_KEYS ] = {
+  BOOL_CHKBOX_KEY BOOL_CHKBOX_MESSAGE_KEYS[] = {
     { .keyID = MESSAGE_KEY_CHIME_ON_DAYS, .numChkBoxItems = 7 }
   };
 
-  for ( int i = 0 ; i < NUM_BOOL_CHKBOX_MESSAGE_KEYS; i++ ) {
+  for ( size_t i = 0 ; i < sizeof( BOOL_CHKBOX_MESSAGE_KEYS ); i++ ) {
     for ( int j = 0 ; j < BOOL_CHKBOX_MESSAGE_KEYS[i].numChkBoxItems ; j++ ) {
       if ( ( p_tuple = dict_find( iterator, BOOL_CHKBOX_MESSAGE_KEYS[i].keyID + j ) ) ) {
         persist_write_bool( BOOL_CHKBOX_MESSAGE_KEYS[i].keyID + j, ( ( p_tuple->value->uint8 == 't' ) ||
