@@ -1,6 +1,7 @@
 #include <pebble.h>
 #include "global.h"
 #include "clock.h"
+#include "date.h"
 #include "chime.h"
 
 static Layer *window_layer = 0;
@@ -14,9 +15,12 @@ static GBitmap *bitmap_webos_hour = 0;
 #ifndef SECONDS_ALWAYS_ON
 static AppTimer *secs_display_apptimer = 0;
 #endif
+static TimeUnits time_units_change;
 extern tm tm_time;
 
+#ifndef SECONDS_ALWAYS_ON
 static void start_seconds_display( AccelAxisType axis, int32_t direction );
+#endif
 
 // function is "adjusted"" for whole hours or minutes; "after" 9:00 AM or "upto" 9:00 AM.
 // "after" includes the hour, "upto" excludes the hour.
@@ -33,6 +37,7 @@ void draw_clock( void ) {
 
 static void handle_clock_tick( struct tm *tick_time, TimeUnits units_changed ) {
   tm_time = *tick_time; // copy to global
+  time_units_change = units_changed;
   
   // if (DEBUG) APP_LOG( APP_LOG_LEVEL_INFO, "clock.c: handle_clock_tick(): %d:%d:%d", tm_time.tm_hour, tm_time.tm_min, tm_time.tm_sec );
 
@@ -46,7 +51,7 @@ static void stop_seconds_display( void* data ) { // after timer elapses
   if ( secs_display_apptimer ) app_timer_cancel( secs_display_apptimer ); // just for fun.
   secs_display_apptimer = 0; // docs don't say if this is set to zero when timer expires. 
 
-  ( (ANALOG_LAYER_DATA *) layer_get_data( hour_layer ) )->show_seconds = false;
+  ( (ANALOG_LAYER_DATA *) layer_get_data( sec_layer ) )->show_seconds = false;
 
   tick_timer_service_subscribe( MINUTE_UNIT, handle_clock_tick );
 }
@@ -60,7 +65,7 @@ static void start_seconds_display( AccelAxisType axis, int32_t direction ) {
 
   tick_timer_service_subscribe( SECOND_UNIT, handle_clock_tick );
 
-  ( (ANALOG_LAYER_DATA *) layer_get_data( hour_layer ) )->show_seconds = true;
+  ( (ANALOG_LAYER_DATA *) layer_get_data( sec_layer ) )->show_seconds = true;
   //
   if ( secs_display_apptimer ) {
     app_timer_reschedule( secs_display_apptimer, (uint32_t) persist_read_int( MESSAGE_KEY_ANALOG_SECONDS_DISPLAY_TIMEOUT_SECS ) * 1000 );
@@ -75,13 +80,9 @@ static void hour_layer_update_proc( Layer *layer, GContext *ctx ) {
   GRect layer_bounds = layer_get_bounds( layer );
   graphics_draw_bitmap_in_rect( ctx, bitmap_webos_clockface, layer_bounds );
   graphics_context_set_compositing_mode( ctx, GCompOpSet );
-  int32_t sec_angle = TRIG_MAX_ANGLE * tm_time.tm_sec / 60;
-  #if PBL_DISPLAY_WIDTH == 200
-  GPoint bitmap_center = GPoint( 84, 84 );
-  #else
-  GPoint bitmap_center = GPoint( 60, 60 );
-  #endif
-  graphics_draw_rotated_bitmap( ctx, bitmap_webos_hour, bitmap_center, sec_angle, GPoint( PBL_DISPLAY_WIDTH / 2, PBL_DISPLAY_WIDTH / 2 ) );
+  uint32_t hour_angle = ( TRIG_MAX_ANGLE * ( ( ( tm_time.tm_hour % 12 ) * 6 ) + ( tm_time.tm_min / 10 ) ) ) / ( 12 * 6 );
+  graphics_draw_rotated_bitmap( ctx, bitmap_webos_hour, GPoint( PBL_DISPLAY_WIDTH / 2, PBL_DISPLAY_WIDTH / 2 ),
+                               hour_angle, GPoint( PBL_DISPLAY_WIDTH / 2, PBL_DISPLAY_WIDTH / 2 ) );
 }
 
 static void min_layer_update_proc( Layer *layer, GContext *ctx ) {
@@ -98,15 +99,22 @@ static void min_layer_update_proc( Layer *layer, GContext *ctx ) {
 }
   
 static void sec_layer_update_proc( Layer *layer, GContext *ctx ) {
+  #ifndef SECONDS_ALWAYS_ON
+  if ( ! ( (ANALOG_LAYER_DATA *) layer_get_data( sec_layer ) )->show_seconds ) return;
+  #endif
+  
   GRect layer_bounds = layer_get_bounds( layer );
   GPoint center_pt = grect_center_point( &layer_bounds );
   int32_t sec_angle = TRIG_MAX_ANGLE * tm_time.tm_sec / 60;
-  GPoint sec_dot = (GPoint) {
+  GPoint sec_dot_center = (GPoint) {
     .x = ( sin_lookup( sec_angle ) * SEC_DOT_DIST / TRIG_MAX_RATIO ) + center_pt.x,
     .y = ( -cos_lookup( sec_angle ) * SEC_DOT_DIST / TRIG_MAX_RATIO ) + center_pt.y
   };  
-  graphics_context_set_fill_color( ctx, GColorOrange );
-  graphics_fill_circle( ctx, sec_dot, SEC_DOT_RADIUS );
+  graphics_context_set_fill_color( ctx, GColorDarkCandyAppleRed );
+  graphics_fill_circle( ctx, sec_dot_center, SEC_DOT_RADIUS );
+  graphics_context_set_stroke_color( ctx, GColorOrange );
+  graphics_context_set_stroke_width( ctx, 1 );
+  graphics_draw_circle( ctx, sec_dot_center, SEC_DOT_RADIUS );
 }
 
 void clock_init( Window *window ) {
@@ -131,6 +139,7 @@ void clock_init( Window *window ) {
   layer_add_child( bitmap_layer_get_layer( min_layer ), sec_layer );
   layer_set_update_proc( sec_layer, sec_layer_update_proc );
   
+  date_init( window_layer );  
  
   // subscriptions
   #ifdef SECONDS_ALWAYS_ON
@@ -148,6 +157,7 @@ void clock_deinit( void ) {
   if ( secs_display_apptimer ) app_timer_cancel( secs_display_apptimer );
   accel_tap_service_unsubscribe(); // are we over-unsubscribing?
   #endif
+  date_deinit();
   tick_timer_service_unsubscribe();
   layer_destroy( sec_layer );
   bitmap_layer_destroy( min_layer );

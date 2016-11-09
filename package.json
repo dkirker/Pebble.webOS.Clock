@@ -4,12 +4,12 @@
         "pebble-clay": "^1.0.2"
     },
     "keywords": [],
-    "name": "webos.clock",
+    "name": "webos-clock",
     "pebble": {
         "capabilities": [
             "configurable"
         ],
-        "displayName": "webOS.clock",
+        "displayName": "webOS Clock",
         "enableMultiJS": true,
         "messageKeys": [
             "ANALOG_SECONDS_DISPLAY_TIMEOUT_SECS",
@@ -23,6 +23,50 @@
         "projectType": "native",
         "resources": {
             "media": [
+                {
+                    "file": "images/webOS Clock Icon.png",
+                    "menuIcon": true,
+                    "name": "IMAGE_WEBOS_CLOCK_ICON",
+                    "targetPlatforms": [
+                        "basalt",
+                        "emery"
+                    ],
+                    "type": "bitmap"
+                },
+                {
+                    "file": "fonts/Prelude-Medium.ttf",
+                    "name": "FONT_PRELUDE_MEDIUM_14",
+                    "targetPlatforms": [
+                        "basalt"
+                    ],
+                    "type": "font"
+                },
+                {
+                    "file": "fonts/Prelude-Medium.ttf",
+                    "name": "FONT_PRELUDE_MEDIUM_18",
+                    "targetPlatforms": [
+                        "emery"
+                    ],
+                    "type": "font"
+                },
+                {
+                    "characterRegex": "[0-9:]",
+                    "file": "fonts/Prelude-Bold.ttf",
+                    "name": "FONT_PRELUDE_BOLD_24",
+                    "targetPlatforms": [
+                        "basalt"
+                    ],
+                    "type": "font"
+                },
+                {
+                    "characterRegex": "[0-9:]",
+                    "file": "fonts/Prelude-Bold.ttf",
+                    "name": "FONT_PRELUDE_BOLD_36",
+                    "targetPlatforms": [
+                        "emery"
+                    ],
+                    "type": "font"
+                },
                 {
                     "file": "images/webOS.clockface.hour.png",
                     "name": "IMAGE_WEBOS_CLOCKFACE_HOUR",

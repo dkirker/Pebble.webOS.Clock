@@ -1,7 +1,7 @@
 module.exports = [
   {
     "type": "heading",
-    "defaultValue": "webOS.clock"
+    "defaultValue": "webOS Clock"
   },
   {
     "type": "text",
@@ -9,7 +9,7 @@ module.exports = [
   },
   {
     "type": "section",
-    "items": [
+    "items": [ 
       {
         "type": "heading",
         "defaultValue": "Watch Settings"
@@ -17,7 +17,7 @@ module.exports = [
       {
         "type": "slider",
         "messageKey": "ANALOG_SECONDS_DISPLAY_TIMEOUT_SECS",
-        "defaultValue": '20',
+        "defaultValue": '0',
         "label": "Seconds Display (seconds)",
         "description": "Number of seconds to display seconds hand after activation by tapping or shaking watch. Set value to '0' to disable.",
         "min": '0',

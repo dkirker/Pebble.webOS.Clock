@@ -9,7 +9,7 @@
 #define MIN_HAND_LENGTH 70
 #define MIN_HAND_WIDTH 15
 #define SEC_DOT_DIST 89
-#define SEC_DOT_RADIUS 5
+#define SEC_DOT_RADIUS 4
 
 ///////
 #else
@@ -18,7 +18,7 @@
 #define MIN_HAND_LENGTH 53
 #define MIN_HAND_WIDTH 9
 #define SEC_DOT_DIST 65
-#define SEC_DOT_RADIUS 3
+#define SEC_DOT_RADIUS 2
 ///////
 #endif
 ///////

@@ -34,5 +34,6 @@ module.exports = function( minified ) {
     var chimeSettings = clayConfig.getItemByMessageKey( 'CHIME_INTERVAL' );
     toggle_chime_settings_visibility.call( chimeSettings );
     chimeSettings.on( 'change', toggle_chime_settings_visibility );
+    clayConfig.getItemByMessageKey( 'SHOW_BATTERY_GAUGE' ).hide();
   });
 };
