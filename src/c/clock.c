@@ -131,7 +131,11 @@ void clock_init( Window *window ) {
   layer_set_update_proc( bitmap_layer_get_layer( min_layer ), min_layer_update_proc );
   
   sec_layer = layer_create_with_data( clock_rect, sizeof( ANALOG_LAYER_DATA ) );
+  #ifdef SECONDS_ALWAYS_ON
+  ( (ANALOG_LAYER_DATA *) layer_get_data( sec_layer ) )->show_seconds = true;
+  #else
   ( (ANALOG_LAYER_DATA *) layer_get_data( sec_layer ) )->show_seconds = false;
+  #endif
   layer_add_child( bitmap_layer_get_layer( min_layer ), sec_layer );
   layer_set_update_proc( sec_layer, sec_layer_update_proc );
   
