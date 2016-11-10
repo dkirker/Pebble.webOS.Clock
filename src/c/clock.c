@@ -41,7 +41,7 @@ static void handle_clock_tick( struct tm *tick_time, TimeUnits units_changed ) {
   
   // if (DEBUG) APP_LOG( APP_LOG_LEVEL_INFO, "clock.c: handle_clock_tick(): %d:%d:%d", tm_time.tm_hour, tm_time.tm_min, tm_time.tm_sec );
  
-  layer_set_hidden( bitmap_layer_get_layer( sec_layer ), hide_seconds_layer );
+  // layer_set_hidden( bitmap_layer_get_layer( sec_layer ), hide_seconds_layer );
   layer_mark_dirty( window_layer );
   
   if ( ( units_changed & MINUTE_UNIT ) == MINUTE_UNIT ) do_chime( &tm_time );
@@ -96,8 +96,6 @@ static void min_layer_update_proc( Layer *layer, GContext *ctx ) {
 }
   
 static void sec_layer_update_proc( Layer *layer, GContext *ctx ) {
-  if ( hide_seconds_layer ) return;
-  
   GRect layer_bounds = layer_get_bounds( layer );
   GPoint center_pt = grect_center_point( &layer_bounds );
   int32_t sec_angle = TRIG_MAX_ANGLE * tm_time.tm_sec / 60;
