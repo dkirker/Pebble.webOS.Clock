@@ -12,6 +12,7 @@ static BitmapLayer *sec_layer = 0;
 static GBitmap *bitmap_webos_clockface = 0;
 static GBitmap *bitmap_webos_hour = 0;
 // misc.
+static bool hide_seconds_layer = true;
 #ifndef SECONDS_ALWAYS_ON
 static AppTimer *secs_display_apptimer = 0;
 #endif
@@ -39,7 +40,8 @@ static void handle_clock_tick( struct tm *tick_time, TimeUnits units_changed ) {
   tm_time = *tick_time; // copy to global
   
   // if (DEBUG) APP_LOG( APP_LOG_LEVEL_INFO, "clock.c: handle_clock_tick(): %d:%d:%d", tm_time.tm_hour, tm_time.tm_min, tm_time.tm_sec );
-
+ 
+  layer_set_hidden( bitmap_layer_get_layer( sec_layer ), hide_seconds_layer );
   layer_mark_dirty( window_layer );
   
   if ( ( units_changed & MINUTE_UNIT ) == MINUTE_UNIT ) do_chime( &tm_time );
@@ -50,7 +52,7 @@ static void stop_seconds_display( void* data ) { // after timer elapses
   if ( secs_display_apptimer ) app_timer_cancel( secs_display_apptimer ); // just for fun.
   secs_display_apptimer = 0; // docs don't say if this is set to zero when timer expires. 
 
-  layer_set_hidden( bitmap_layer_get_layer( sec_layer ), true );
+  hide_seconds_layer = true;
   
   tick_timer_service_subscribe( MINUTE_UNIT, handle_clock_tick );
 }
@@ -60,7 +62,7 @@ static void start_seconds_display( AccelAxisType axis, int32_t direction ) {
 
   tick_timer_service_subscribe( SECOND_UNIT, handle_clock_tick );
 
-  layer_set_hidden( bitmap_layer_get_layer( sec_layer ), false );
+  hide_seconds_layer = false;
 
   if ( secs_display_apptimer ) {
     app_timer_reschedule( secs_display_apptimer, (uint32_t) persist_read_int( MESSAGE_KEY_ANALOG_SECONDS_DISPLAY_TIMEOUT_SECS ) * 1000 );
@@ -94,6 +96,8 @@ static void min_layer_update_proc( Layer *layer, GContext *ctx ) {
 }
   
 static void sec_layer_update_proc( Layer *layer, GContext *ctx ) {
+  if ( hide_seconds_layer ) return;
+  
   GRect layer_bounds = layer_get_bounds( layer );
   GPoint center_pt = grect_center_point( &layer_bounds );
   int32_t sec_angle = TRIG_MAX_ANGLE * tm_time.tm_sec / 60;
