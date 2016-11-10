@@ -41,7 +41,7 @@ static void handle_clock_tick( struct tm *tick_time, TimeUnits units_changed ) {
   
   // if (DEBUG) APP_LOG( APP_LOG_LEVEL_INFO, "clock.c: handle_clock_tick(): %d:%d:%d", tm_time.tm_hour, tm_time.tm_min, tm_time.tm_sec );
  
-  // layer_set_hidden( bitmap_layer_get_layer( sec_layer ), hide_seconds_layer );
+  layer_set_hidden( bitmap_layer_get_layer( sec_layer ), hide_seconds_layer );
   layer_mark_dirty( window_layer );
   
   if ( ( units_changed & MINUTE_UNIT ) == MINUTE_UNIT ) do_chime( &tm_time );
