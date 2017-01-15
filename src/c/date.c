@@ -9,6 +9,7 @@ extern tm tm_time;
 
 static void date_layer_update_proc( Layer *layer, GContext *ctx ) {
   GRect date_window_bounds = layer_get_bounds( layer );
+  graphics_context_set_antialiased( ctx, true );
   graphics_context_set_fill_color( ctx, GColorBlack );
   graphics_fill_rect( ctx, date_window_bounds, 0, GCornerNone );
   date_window_bounds = grect_inset( date_window_bounds, GEdgeInsets( 1, DATE_WINDOW_INSET, 1, DATE_WINDOW_INSET ) );
@@ -20,6 +21,7 @@ static void date_layer_update_proc( Layer *layer, GContext *ctx ) {
 static void date_text_layer_update_proc( Layer *layer, GContext *ctx ) {
   char date_str[] = "AAA, DD-MMM-YYYY";
   GRect date_window_bounds = grect_inset( layer_get_bounds( layer ), GEdgeInsets( DATE_STR_VERT_CORRECTION ) );
+  graphics_context_set_antialiased( ctx, true );
   graphics_context_set_text_color( ctx, GColorLightGray );
   strftime( date_str, sizeof( date_str ), "%a, %e-%b-%Y", &tm_time );
   graphics_draw_text( ctx, date_str, batt_font, date_window_bounds,

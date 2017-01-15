@@ -44,7 +44,7 @@ static void handle_clock_tick( struct tm *tick_time, TimeUnits units_changed ) {
   layer_set_hidden( bitmap_layer_get_layer( sec_layer ), hide_seconds_layer );
   layer_mark_dirty( window_layer );
   
-  if ( ( units_changed & MINUTE_UNIT ) == MINUTE_UNIT ) do_chime( &tm_time );
+  if ( units_changed & MINUTE_UNIT ) do_chime( &tm_time );
 }
 
 #ifndef SECONDS_ALWAYS_ON
@@ -75,11 +75,20 @@ static void start_seconds_display( AccelAxisType axis, int32_t direction ) {
 
 static void hour_layer_update_proc( Layer *layer, GContext *ctx ) {
   GRect layer_bounds = layer_get_bounds( layer );
+  graphics_context_set_antialiased( ctx, true );
   graphics_draw_bitmap_in_rect( ctx, bitmap_webos_clockface, layer_bounds );
   graphics_context_set_compositing_mode( ctx, GCompOpSet );
   uint32_t hour_angle = ( TRIG_MAX_ANGLE * ( ( ( tm_time.tm_hour % 12 ) * 6 ) + ( tm_time.tm_min / 10 ) ) ) / ( 12 * 6 );
   graphics_draw_rotated_bitmap( ctx, bitmap_webos_hour, GPoint( PBL_DISPLAY_WIDTH / 2, PBL_DISPLAY_WIDTH / 2 ),
                                hour_angle, GPoint( PBL_DISPLAY_WIDTH / 2, PBL_DISPLAY_WIDTH / 2 ) );
+  graphics_context_set_antialiased( ctx, true );
+  graphics_context_set_stroke_color( ctx, GColorWhite );
+  graphics_context_set_stroke_width( ctx, 2 );
+  #if PBL_DISPLAY_WIDTH == 200
+  graphics_draw_circle( ctx, GPoint( PBL_DISPLAY_WIDTH / 2, PBL_DISPLAY_WIDTH / 2 ), 83 );  
+  #else
+  graphics_draw_circle( ctx, GPoint( PBL_DISPLAY_WIDTH / 2, PBL_DISPLAY_WIDTH / 2 ), 60 );
+  #endif
 }
 
 static void min_layer_update_proc( Layer *layer, GContext *ctx ) {
@@ -90,6 +99,7 @@ static void min_layer_update_proc( Layer *layer, GContext *ctx ) {
     .x = ( sin_lookup( min_angle ) * MIN_HAND_LENGTH / TRIG_MAX_RATIO ) + center_pt.x,
     .y = ( -cos_lookup( min_angle ) * MIN_HAND_LENGTH / TRIG_MAX_RATIO ) + center_pt.y
   };
+  graphics_context_set_antialiased( ctx, true );
   graphics_context_set_stroke_color( ctx, GColorDarkGray );
   graphics_context_set_stroke_width( ctx, MIN_HAND_WIDTH );
   graphics_draw_line( ctx, GPoint( PBL_DISPLAY_WIDTH / 2, PBL_DISPLAY_WIDTH / 2 ), min_hand );
@@ -102,7 +112,8 @@ static void sec_layer_update_proc( Layer *layer, GContext *ctx ) {
   GPoint sec_dot_center = (GPoint) {
     .x = ( sin_lookup( sec_angle ) * SEC_DOT_DIST / TRIG_MAX_RATIO ) + center_pt.x,
     .y = ( -cos_lookup( sec_angle ) * SEC_DOT_DIST / TRIG_MAX_RATIO ) + center_pt.y
-  };  
+  };
+  graphics_context_set_antialiased( ctx, true );
   graphics_context_set_fill_color( ctx, GColorOrange );
   graphics_fill_circle( ctx, sec_dot_center, SEC_DOT_RADIUS );
   graphics_context_set_stroke_color( ctx, GColorDarkCandyAppleRed );
