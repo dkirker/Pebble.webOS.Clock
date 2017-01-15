@@ -81,7 +81,6 @@ static void hour_layer_update_proc( Layer *layer, GContext *ctx ) {
   uint32_t hour_angle = ( TRIG_MAX_ANGLE * ( ( ( tm_time.tm_hour % 12 ) * 6 ) + ( tm_time.tm_min / 10 ) ) ) / ( 12 * 6 );
   graphics_draw_rotated_bitmap( ctx, bitmap_webos_hour, GPoint( PBL_DISPLAY_WIDTH / 2, PBL_DISPLAY_WIDTH / 2 ),
                                hour_angle, GPoint( PBL_DISPLAY_WIDTH / 2, PBL_DISPLAY_WIDTH / 2 ) );
-  graphics_context_set_antialiased( ctx, true );
   graphics_context_set_stroke_color( ctx, GColorWhite );
   graphics_context_set_stroke_width( ctx, 2 );
   #if PBL_DISPLAY_WIDTH == 200
