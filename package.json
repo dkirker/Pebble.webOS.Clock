@@ -29,7 +29,8 @@
                     "name": "IMAGE_WEBOS_CLOCK_ICON",
                     "targetPlatforms": [
                         "basalt",
-                        "emery"
+                        "emery",
+                        "chalk"
                     ],
                     "type": "bitmap"
                 },
@@ -37,7 +38,8 @@
                     "file": "fonts/Prelude-Medium.ttf",
                     "name": "FONT_PRELUDE_MEDIUM_14",
                     "targetPlatforms": [
-                        "basalt"
+                        "basalt",
+                        "chalk"
                     ],
                     "type": "font"
                 },
@@ -54,7 +56,8 @@
                     "file": "fonts/Prelude-Bold.ttf",
                     "name": "FONT_PRELUDE_BOLD_24",
                     "targetPlatforms": [
-                        "basalt"
+                        "basalt",
+                        "chalk"
                     ],
                     "type": "font"
                 },
@@ -72,7 +75,8 @@
                     "name": "IMAGE_WEBOS_CLOCKFACE_HOUR",
                     "targetPlatforms": [
                         "basalt",
-                        "emery"
+                        "emery",
+                        "chalk"
                     ],
                     "type": "bitmap"
                 },
@@ -81,7 +85,8 @@
                     "name": "IMAGE_WEBOS_CLOCKFACE",
                     "targetPlatforms": [
                         "basalt",
-                        "emery"
+                        "emery",
+                        "chalk"
                     ],
                     "type": "bitmap"
                 }
@@ -90,12 +95,13 @@
         "sdkVersion": "3",
         "targetPlatforms": [
             "basalt",
-            "emery"
+            "emery",
+            "chalk"
         ],
         "uuid": "5328494d-d52e-456f-97ba-3e43f62b8bb0",
         "watchapp": {
             "watchface": true
         }
     },
-    "version": "1.5.0"
+    "version": "1.7.0"
 }

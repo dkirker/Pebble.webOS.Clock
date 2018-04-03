@@ -85,6 +85,8 @@ static void hour_layer_update_proc( Layer *layer, GContext *ctx ) {
   graphics_context_set_stroke_width( ctx, 2 );
   #if PBL_DISPLAY_WIDTH == 200
   graphics_draw_circle( ctx, GPoint( PBL_DISPLAY_WIDTH / 2, PBL_DISPLAY_WIDTH / 2 ), 83 );  
+  #elif PBL_DISPLAY_WIDTH == 180
+  graphics_draw_circle( ctx, GPoint( PBL_DISPLAY_WIDTH / 2, PBL_DISPLAY_WIDTH / 2 ), 74 );
   #else
   graphics_draw_circle( ctx, GPoint( PBL_DISPLAY_WIDTH / 2, PBL_DISPLAY_WIDTH / 2 ), 60 );
   #endif
@@ -147,8 +149,10 @@ void clock_init( Window *window ) {
   layer_set_hidden( bitmap_layer_get_layer( sec_layer ), true );
   #endif
   
-  date_init( window_layer );  
- 
+  #ifndef PBL_ROUND
+  date_init( window_layer );
+  #endif
+
   // subscriptions
   #ifdef SECONDS_ALWAYS_ON
   tick_timer_service_subscribe( SECOND_UNIT, handle_clock_tick );
@@ -165,7 +169,11 @@ void clock_deinit( void ) {
   if ( secs_display_apptimer ) app_timer_cancel( secs_display_apptimer );
   accel_tap_service_unsubscribe(); // are we over-unsubscribing?
   #endif
+
+  #ifndef PBL_ROUND
   date_deinit();
+  #endif
+
   tick_timer_service_unsubscribe();
   bitmap_layer_destroy( sec_layer );
   bitmap_layer_destroy( min_layer );

@@ -12,6 +12,15 @@
 #define SEC_DOT_RADIUS 4
 
 ///////
+#elif PBL_DISPLAY_WIDTH == 180
+////// 180 x 180
+
+#define MIN_HAND_LENGTH 63
+#define MIN_HAND_WIDTH 12
+#define SEC_DOT_DIST 80
+#define SEC_DOT_RADIUS 3
+
+///////
 #else
 /////// 144 x 168
 
