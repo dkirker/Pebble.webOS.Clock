@@ -101,7 +101,11 @@ static void min_layer_update_proc( Layer *layer, GContext *ctx ) {
     .y = ( -cos_lookup( min_angle ) * MIN_HAND_LENGTH / TRIG_MAX_RATIO ) + center_pt.y
   };
   graphics_context_set_antialiased( ctx, true );
+  #if PBL_DISPLAY_WIDTH == 180
+  graphics_context_set_stroke_color( ctx, GColorBlack ); // A terrible hack to overcome the washed out grays on the Round :'(
+  #else
   graphics_context_set_stroke_color( ctx, GColorDarkGray );
+  #endif
   graphics_context_set_stroke_width( ctx, MIN_HAND_WIDTH );
   graphics_draw_line( ctx, GPoint( PBL_DISPLAY_WIDTH / 2, PBL_DISPLAY_WIDTH / 2 ), min_hand );
 }
